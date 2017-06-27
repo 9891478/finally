@@ -1,0 +1,50 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:showIn="@layout/entity_main_cv">
+
+    <!--<ImageView-->
+        <!--android:id="@+id/entity_main_logo"-->
+        <!--android:layout_width="170dp"-->
+        <!--android:layout_height="90dp"-->
+        <!--android:scaleType="fitStart"-->
+        <!--tools:ignore="ContentDescription" />-->
+
+    <ImageView
+        android:id="@+id/entity_main_logo"
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:scaleType="centerInside"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:layout_below="@id/entity_main_logo"
+        android:id="@+id/entity_main_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:tag="entity_main_description" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="end|bottom"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/entity_main_button"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_calendar"
+            android:tag="entity_main_button"
+            android:tint="#ff6c6c6c"
+            tools:ignore="ContentDescription" />
+    </LinearLayout>
+</RelativeLayout>

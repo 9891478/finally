@@ -1,0 +1,106 @@
+import requests
+from bs4 import BeautifulSoup
+from itertools import takewhile, chain
+import re
+
+base_url = 'https://www.qwe.pl'
+meta_url = base_url + '/rty'
+
+
+def get_text(container, from_tag, until_tag):
+    for item in container(from_tag):
+        until = item.findNext(until_tag)
+        strings = (node for node in item.nextSiblingGenerator() if getattr(node, 'text', '').strip())
+        selected = takewhile(lambda node: node != until, strings)
+        try:
+            yield ', '.join(getattr(node, 'text', '') for node in chain([item, next(selected)], selected))
+        except StopIteration:
+            pass
+
+
+def retrieve_meta():
+    source_code = requests.get(meta_url)
+    plain_text = source_code.text
+    soup = BeautifulSoup(plain_text, 'lxml')
+
+    container = soup.find_all('div', {'class': 'work'})
+    for link in container:
+        print(link.a["href"])
+        retrieve_specific(link.a["href"])
+
+
+def retrieve_specific(specific_url):
+    url = base_url + specific_url
+    source_code = requests.get(url)
+    plain_text = source_code.text
+    soup = BeautifulSoup(plain_text, 'lxml')
+
+    name = 'qwe_' + specific_url.replace('-', '_')[1:]
+    logo_url = base_url + soup.find('img', {'alt': 'Logo'})['src']
+    title = ""
+    try:
+        title = soup.find('h1', {'class': 'red'}).i.text
+    except:
+        pass
+    try:
+        title = soup.find('h1', {'class': 'red'}).text
+    except:
+        pass
+    date = soup.find('p', {'class': 'date'}).text
+
+    img_list = []
+    img_cnt = soup.find('div', {'class': 'gallery-slider'})
+    for img in img_cnt.find_all('img'):
+        img_list.append(img['src'])
+
+    asds = ""
+    fghs = ""
+    try:
+        sidebar_cnt = soup.find('div', {'class': 'cbox qwe-exhibition-sidebar'}).div
+    except:
+        exit(0)
+        
+    for text in get_text(sidebar_cnt, 'dt', 'dt'):
+        rex = re.split(':', text.strip(), maxsplit=2)
+        k_rex = rex[0]
+        v_rex = ' '.join(rex[1].split())[2:]
+        if re.search("asd", k_rex):
+            asds = v_rex
+        if re.search("fgh", k_rex):
+            fghs = v_rex
+
+    desc = ""
+    desc_box_cnt = soup.find('div', {'class': 'cbox content-columns'}).div.div
+    for p_tags in desc_box_cnt.find_all("p"):
+        desc = p_tags.get_text()
+
+    with open("/var/tmp/pl/qwe/" + name + '.yml', 'w') as f:
+        f.write("---\n")
+        f.write("website: \"" + specific_url + "\"\n")
+        f.write("logo: \"" + logo_url + "\"\n")
+        f.write("title: \"" + title.strip() + "\"\n")
+        f.write("date: \"" + date + "\"\n")
+        f.write("images: \"")
+        for img_url in img_list:
+            f.write("%s " % img_url)
+        f.write("\"\nasds: \"" + asds + "\"\n")
+        f.write("fghs: \"" + fghs + "\"\n")
+        f.write("desc: \"" + desc + "\"\n")
+
+# never ever playing with " " " " "" ""\""  - this should be produced by dump, next time. 
+    with open("/var/tmp/pl/qwe/" + name + '.json', 'w') as f:
+        f.write("{\n")
+        f.write("\"website\":\"" + base_url + specific_url + "\",\n")
+        f.write("\"logo\":\"" + logo_url + "\",\n")
+        f.write("\"title\":\"" + title.strip() + "\",\n")
+        f.write("\"date\":\"" + date + "\",\n")
+        f.write("\"images\":[ \"")
+        f.write("\",\"".join(img_list))
+        f.write("\"],\n")
+        f.write("\"asds\":\"" + asds + "\",\n")
+        f.write("\"fghs\":\"" + fghs + "\",\n")
+        f.write("\"desc\":\"" + desc + "\",\n")
+        f.write("}\n")
+
+retrieve_meta()
+
